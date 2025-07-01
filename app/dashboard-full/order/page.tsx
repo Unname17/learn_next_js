@@ -3,9 +3,9 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import CustomerList from "@/components/customer-list"; // pastikan path file sesuai
+import OrderList from "@/components/order-list";
 
-export default function CustomerPage() {
+export default function UserPage() {
   return (
     <SidebarProvider
       style={
@@ -22,14 +22,14 @@ export default function CustomerPage() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
               <h1 className="text-2xl font-semibold tracking-tight">
-                Daftar Pelanggan
+                Daftar Pemesanan Barang
               </h1>
               <p className="text-muted-foreground">
-                Berikut adalah daftar Customer yang diambil dari API Laravel.
+                Berikut adalah daftar Pesanan yang diambil dari API Laravel.
               </p>
 
               <div className="border rounded-lg p-4 bg-muted">
-                <CustomerList />
+                <OrderList />
               </div>
             </div>
           </div>

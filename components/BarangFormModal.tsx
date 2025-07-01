@@ -12,31 +12,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface Customer {
+interface Barang {
   id?: string;
-  customer_name: string;
-  alamat: string;
-  no_hp?: string;
+  nama_barang: string;
+  harga: number;
+  jumlah?: number;
 }
 
 interface Props {
-  customer?: Customer; // data lama jika edit
+  barang?: Barang;
   trigger: React.ReactNode;
-  onSubmit: (data: Customer) => void;
+  onSubmit: (data: Barang) => void;
 }
 
-export default function CustomerFormModal({
-  customer,
-  trigger,
-  onSubmit,
-}: Props) {
+export default function BarangFormModal({ barang, trigger, onSubmit }: Props) {
   const [open, setOpen] = useState(false);
-
-  const [form, setForm] = useState<Customer>({
-    customer_name: customer?.customer_name || "",
-    alamat: customer?.alamat || "",
-    no_hp: customer?.no_hp || "",
-    id: customer?.id || "",
+  const [form, setForm] = useState<Barang>({
+    nama_barang: barang?.nama_barang || "",
+    harga: barang?.harga || "",
+    jumlah: barang?.jumlah || "",
+    id: barang?.id || "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,14 +39,7 @@ export default function CustomerFormModal({
   };
 
   const handleSubmit = () => {
-    const formData = { ...form };
-
-    // Hapus no_hp jika tidak berubah dari data awal
-    if (customer && form.no_hp === customer.no_hp) {
-      delete formData.no_hp;
-    }
-
-    onSubmit(formData);
+    onSubmit(form);
     setOpen(false);
   };
 
@@ -60,35 +48,31 @@ export default function CustomerFormModal({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {customer ? "Edit Customer" : "Tambah Customer"}
-          </DialogTitle>
+          <DialogTitle>{barang ? "Edit Barang" : "Tambah Barang"}</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4 py-2">
           <Input
-            name="customer_name"
-            placeholder="Nama Customer"
-            value={form.customer_name}
+            name="nama_barang"
+            placeholder="Nama"
+            value={form.nama_barang}
             onChange={handleChange}
           />
           <Input
-            name="alamat"
-            placeholder="Alamat"
-            value={form.alamat}
+            name="jumlah"
+            placeholder="Jumlah"
+            value={form.jumlah}
             onChange={handleChange}
           />
           <Input
-            name="no_hp"
-            placeholder="No HP"
-            value={form.no_hp}
+            name="harga"
+            placeholder="Harga"
+            value={form.harga}
             onChange={handleChange}
           />
         </div>
-
         <DialogFooter>
           <Button onClick={handleSubmit}>
-            {customer ? "Simpan Perubahan" : "Tambah"}
+            {barang ? "Simpan Perubahan" : "Tambah"}
           </Button>
         </DialogFooter>
       </DialogContent>

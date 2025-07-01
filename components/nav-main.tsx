@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
+import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
+} from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: Icon
-  }[]
+    title: string;
+    url: string;
+    icon?: Icon;
+  }[];
 }) {
   return (
     <SidebarGroup>
@@ -32,8 +32,8 @@ export function NavMain({
               asChild
             >
               <Link href="/dashboard-full">
-              <IconCirclePlusFilled />
-              <span>Dashboard</span>
+                <IconCirclePlusFilled />
+                <span>Dashboard</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -52,5 +52,5 @@ export function NavMain({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }

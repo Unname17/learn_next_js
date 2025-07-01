@@ -10,13 +10,13 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import {
-  createCustomer,
-  deleteCustomer,
-  fetchCustomer,
-  updateCustomer,
+  createStock,
+  deleteStock,
+  fetchStock,
+  updateStock,
+  fetchBarang,
 } from "@/lib/api";
 import { Button } from "./ui/button";
-import CustomerFormModal from "./CustomerFormModal";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -29,62 +29,87 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import StockFormModal from "./StockFormModal";
 
-interface Customer {
-  id: number;
-  customer_name: string;
-  alamat: string;
-  no_hp: string;
+interface Stock {
+  id: string;
+  id_barang: string;
+  limit: number;
 }
 
-export default function CustomerTable() {
-  const [customer, setCustomer] = useState<Customer[]>([]);
+interface Barang {
+  id: string;
+  nama_barang: string;
+}
+
+export default function StockList() {
+  const [stock, setStock] = useState<Stock[]>([]);
+  const [barangList, setBarangList] = useState<Barang[]>([]);
 
   useEffect(() => {
-    fetchCustomer().then(setCustomer);
+    async function loadData() {
+      try {
+        const [stockData, barangData] = await Promise.all([
+          fetchStock(),
+          fetchBarang(),
+        ]);
+        setStock(stockData);
+        setBarangList(barangData);
+      } catch (error) {
+        toast.error("Gagal memuat data");
+        console.error(error);
+      }
+    }
+
+    loadData();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    const token = localStorage.getItem("token");
+  const handleDelete = async (id: string) => {
     try {
-      await deleteCustomer(id, token);
-      setCustomer((prev) => prev.filter((u) => u.id !== id));
-      toast.success("Customer berhasil dihapus");
+      await deleteStock(id);
+      setStock((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Stock Barang berhasil dihapus");
     } catch (err) {
-      toast.error("Gagal menghapus Customer");
+      toast.error("Gagal menghapus Stock Barang");
     }
   };
 
-  const handleUpdate = async (data: any) => {
-    const token = localStorage.getItem("token");
+  const handleUpdate = async (data: Stock) => {
     try {
-      await updateCustomer(data.id, data, token);
-      const updatedCustomer = await fetchCustomer();
-      setCustomer(updatedCustomer);
-
-      toast.success("Customer berhasil diupdate");
+      await updateStock(data.id!, data);
+      const updatedStock = await fetchStock();
+      setStock(updatedStock);
+      toast.success("Stock Barang berhasil diupdate");
     } catch (err) {
-      toast.error("Gagal mengupdate Customer");
+      toast.error("Gagal mengupdate Stock Barang");
     }
   };
 
-  const handleCreate = async (data: any) => {
-    const token = localStorage.getItem("token");
+  const handleCreate = async (data: Omit<Stock, "id">) => {
     try {
-      await createCustomer(data, token);
-      const updated = await fetchCustomer();
-      setCustomer(updated);
-      toast.success("Customer berhasil ditambahkan");
+      await createStock(data);
+      const updated = await fetchStock();
+      setStock(updated);
+      toast.success("Stock Barang berhasil ditambahkan");
     } catch (err) {
-      toast.error("Gagal menambahkan Customer");
+      console.log(err);
+      toast.error("Gagal menambahkan Stock Barang");
     }
+  };
+
+  // fungsi bantu untuk cari nama barang dari id_barang
+  const getNamaBarang = (id_barang: string) => {
+    return (
+      barangList.find((b) => b.id === id_barang)?.nama_barang ||
+      "Barang tidak ditemukan"
+    );
   };
 
   return (
     <div className="rounded-md border p-4 space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Daftar Pelanggan</h2>
-        <CustomerFormModal
+        <h2 className="text-xl font-semibold">Daftar Stock Barang</h2>
+        <StockFormModal
           onSubmit={handleCreate}
           trigger={<Button>+ Tambah</Button>}
         />
@@ -93,22 +118,20 @@ export default function CustomerTable() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">#</TableHead>
-            <TableHead>Customer Name</TableHead>
-            <TableHead>Alamat</TableHead>
-            <TableHead>No Hp</TableHead>
+            <TableHead>Nama Barang</TableHead>
+            <TableHead>Limit Barang</TableHead>
             <TableHead className="text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customer.map((customer, index) => (
-            <TableRow key={customer.id}>
+          {stock.map((item, index) => (
+            <TableRow key={item.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{customer.customer_name}</TableCell>
-              <TableCell>{customer.alamat}</TableCell>
-              <TableCell>{customer.no_hp}</TableCell>
+              <TableCell>{getNamaBarang(item.id_barang)}</TableCell>
+              <TableCell>{item.limit}</TableCell>
               <TableCell className="text-right space-x-2">
-                <CustomerFormModal
-                  customer={customer}
+                <StockFormModal
+                  stock={item}
                   onSubmit={handleUpdate}
                   trigger={
                     <Button size="sm" variant="outline">
@@ -125,7 +148,7 @@ export default function CustomerTable() {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Yakin ingin menghapus Customer ini?
+                        Yakin ingin menghapus Stock barang ini?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
                         Tindakan ini tidak bisa dibatalkan. Data akan hilang
@@ -135,7 +158,7 @@ export default function CustomerTable() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleDelete(customer.id)}
+                        onClick={() => handleDelete(item.id)}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         Ya, Hapus
