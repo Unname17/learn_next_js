@@ -1,28 +1,23 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import {
   IconCamera,
   IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
   IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
   IconReport,
-  IconSearch,
-  IconSettings,
   IconUsers,
-} from "@tabler/icons-react"
+  IconCirclePlusFilled,
+  IconSettings,
+  IconHelp,
+  IconSearch,
+} from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -31,7 +26,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  SidebarGroup,
+  SidebarGroupContent,
+} from "@/components/ui/sidebar";
 
 const data = {
   user: {
@@ -40,104 +37,22 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-        {
-      title: "User",
-      url: "/dashboard-full/user",
-      icon: IconUsers,
-    },
-    {
-      title: "Customer",
-      url: "#",
-      icon: IconCamera,
-    },
-    
-    {
-      title: "Barang",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Persediaan",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      title: "Pemesanan",
-      url: "#",
-      icon: IconChartBar,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
+    { title: "User", url: "/dashboard-full/user", icon: IconUsers },
+    { title: "Customer", url: "/dashboard-full/customer", icon: IconCamera },
+    { title: "Barang", url: "/dashboard-full/barang", icon: IconFolder },
+    { title: "Persediaan", url: "/dashboard-full/stock", icon: IconReport },
+    { title: "Pemesanan", url: "/dashboard-full/order", icon: IconChartBar },
   ],
   navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
+    { title: "Settings", url: "#", icon: IconSettings },
+    { title: "Get Help", url: "#", icon: IconHelp },
+    { title: "Search", url: "#", icon: IconSearch },
   ],
-  documents: [
-
-  ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -148,21 +63,67 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">PT Biawak Tbk</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
+        <SidebarGroup>
+          <SidebarGroupContent className="flex flex-col gap-2">
+            <SidebarMenu>
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Quick Create"
+                  asChild
+                  className={`min-w-8 transition-colors duration-200 ease-linear ${
+                    pathname === "/dashboard-full"
+                      ? "bg-primary text-primary-foreground hover:bg-gray-100 active:bg-gray-200"
+                      : "hover:bg-gray-100 active:bg-gray-200"
+                  }`}
+                >
+                  <Link href="/dashboard-full">
+                    <IconCirclePlusFilled />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+
+            <SidebarMenu>
+              {data.navMain.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      asChild
+                      className={`transition-colors duration-200 ease-linear ${
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-gray-100 active:bg-gray-200"
+                          : "hover:bg-gray-100 active:bg-gray-200"
+                      }`}
+                    >
+                      <Link href={item.url}>
+                        {item.icon && <item.icon className="size-5" />}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

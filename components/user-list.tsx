@@ -71,8 +71,7 @@ export default function UserTable() {
       setUsers(updated);
       toast.success("User berhasil ditambahkan");
     } catch (err) {
-      console.error("Gagal membuat user:", err); // Logging error ke konsol
-      toast.error("Gagal membuat user");
+      toast.error("Gagal menambahkan user");
     }
   };
 

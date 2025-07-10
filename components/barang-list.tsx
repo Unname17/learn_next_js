@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import {
-  createCustomer,
-  deleteCustomer,
-  fetchCustomers,
-  updateCustomer,
+  createBarang,
+  deleteBarang,
+  fetchBarang,
+  updateBarang,
 } from "@/lib/api";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -28,87 +28,70 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import CustomerFormModal from "./CustomerFormModal";
+import BarangFormModal from "./BarangFormModal";
 
-interface Customer {
+interface Barang {
   id: number;
-  customer_name: string;
-  alamat: string;
-  no_hp: string;
+  nama_barang: string;
+  jumlah: number;
+  harga: number;
 }
 
-export default function CustomerTable() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+export default function BarangList() {
+  const [barang, setBarang] = useState<Barang[]>([]);
 
   useEffect(() => {
-    fetchCustomers().then(setCustomers);
+    fetchBarang().then(setBarang);
   }, []);
 
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("token");
     try {
-      await deleteCustomer(id, token);
-      setCustomers((prev) => prev.filter((u) => u.id !== id));
-      toast.success("Customers berhasil dihapus");
+      await deleteBarang(id, token);
+      setBarang((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Barang berhasil dihapus");
     } catch (err) {
-      toast.error("Gagal menghapus Customers");
+      toast.error("Gagal menghapus Barang");
     }
   };
 
   const handleUpdate = async (data: any) => {
     const token = localStorage.getItem("token");
     try {
-      await updateCustomer(data.id, data, token);
-      const updatedCustomers = await fetchCustomers();
-      setCustomers(updatedCustomers);
-      toast.success("Customer berhasil diupdate");
-    } catch (err: any) {
-      try {
-        const errorData = await err.response.json(); // jika pakai fetch biasa
-        const noHpError = errorData?.errors?.no_hp?.[0];
+      await updateBarang(data.id, data, token);
+      const updatedBarang = await fetchBarang();
+      setBarang(updatedBarang);
 
-        if (noHpError?.includes("has already been taken")) {
-          toast.info("Nomor handphone sudah terdaftar.");
-        } else {
-          toast.error("Gagal mengupdate Customers");
-        }
-      } catch (e) {
-        toast.error("Gagal mengupdate Customers");
-      }
+      toast.success("Barang berhasil diupdate");
+    } catch (err) {
+      toast.error("Gagal mengupdate Barang");
     }
   };
+
+  const formatRupiah = (angka: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(angka);
 
   const handleCreate = async (data: any) => {
     const token = localStorage.getItem("token");
     try {
-      await createCustomer(data);
-      const updated = await fetchCustomers();
-      setCustomers(updated);
-      toast.success("Customers berhasil ditambahkan");
-    } catch (err: any) {
-      try {
-        // Ambil error detail dari response JSON
-        const errorData = await err.response.json();
-        console.log("Error detail dari API:", errorData); // <-- ini lognya
-
-        const noHpError = errorData?.errors?.no_hp?.[0];
-
-        if (noHpError?.includes("has already been taken")) {
-          toast.info("Nomor handphone sudah terdaftar.");
-        } else {
-          toast.error("Gagal menambahkan Customers");
-        }
-      } catch {
-        toast.error("Gagal menambahkan Customers");
-      }
+      await createBarang(data, token);
+      const updated = await fetchBarang();
+      setBarang(updated);
+      toast.success("Barang berhasil ditambahkan");
+    } catch (err) {
+      toast.error("Gagal menambahkan Barang");
     }
   };
 
   return (
     <div className="rounded-md border p-4 space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Daftar Customer</h2>
-        <CustomerFormModal
+        <h2 className="text-xl font-semibold">Daftar Barang</h2>
+        <BarangFormModal
           onSubmit={handleCreate}
           trigger={<Button>+ Tambah</Button>}
         />
@@ -117,22 +100,22 @@ export default function CustomerTable() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">#</TableHead>
-            <TableHead>Nama Customer</TableHead>
-            <TableHead>Alamat</TableHead>
-            <TableHead>No Handphone</TableHead>
+            <TableHead>Nama Barang</TableHead>
+            <TableHead>Jumlah Barang</TableHead>
+            <TableHead>Harga Barang</TableHead>
             <TableHead className="text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer, index) => (
-            <TableRow key={customer.id}>
+          {barang.map((barang, index) => (
+            <TableRow key={barang.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{customer.customer_name}</TableCell>
-              <TableCell>{customer.alamat}</TableCell>
-              <TableCell>{customer.no_hp}</TableCell>
+              <TableCell>{barang.nama_barang}</TableCell>
+              <TableCell>{barang.jumlah}</TableCell>
+              <TableCell>{formatRupiah(barang.harga)}</TableCell>
               <TableCell className="text-right space-x-2">
-                <CustomerFormModal
-                  customer={customer}
+                <BarangFormModal
+                  barang={barang}
                   onSubmit={handleUpdate}
                   trigger={
                     <Button size="sm" variant="outline">
@@ -149,7 +132,7 @@ export default function CustomerTable() {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Yakin ingin menghapus Customers ini?
+                        Yakin ingin menghapus Barang ini?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
                         Tindakan ini tidak bisa dibatalkan. Data akan hilang
@@ -159,7 +142,7 @@ export default function CustomerTable() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleDelete(customer.id)}
+                        onClick={() => handleDelete(barang.id)}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         Ya, Hapus

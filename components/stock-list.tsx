@@ -9,12 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
-import {
-  createCustomer,
-  deleteCustomer,
-  fetchCustomers,
-  updateCustomer,
-} from "@/lib/api";
+import { createStock, deleteStock, fetchStock, updateStock } from "@/lib/api";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import {
@@ -28,87 +23,63 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import CustomerFormModal from "./CustomerFormModal";
+import StockFormModal from "./StockFormModal";
 
-interface Customer {
+interface Stock {
   id: number;
-  customer_name: string;
-  alamat: string;
-  no_hp: string;
+  id_barang: string;
+  limit: number;
 }
 
-export default function CustomerTable() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+export default function StockList() {
+  const [stock, setStock] = useState<Stock[]>([]);
 
   useEffect(() => {
-    fetchCustomers().then(setCustomers);
+    fetchStock().then(setStock);
   }, []);
 
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("token");
     try {
-      await deleteCustomer(id, token);
-      setCustomers((prev) => prev.filter((u) => u.id !== id));
-      toast.success("Customers berhasil dihapus");
+      await deleteStock(id, token);
+      setStock((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Stock berhasil dihapus");
     } catch (err) {
-      toast.error("Gagal menghapus Customers");
+      toast.error("Gagal menghapus stock");
     }
   };
 
   const handleUpdate = async (data: any) => {
     const token = localStorage.getItem("token");
     try {
-      await updateCustomer(data.id, data, token);
-      const updatedCustomers = await fetchCustomers();
-      setCustomers(updatedCustomers);
-      toast.success("Customer berhasil diupdate");
-    } catch (err: any) {
-      try {
-        const errorData = await err.response.json(); // jika pakai fetch biasa
-        const noHpError = errorData?.errors?.no_hp?.[0];
+      console.log(data);
+      await updateStock(data.id, data, token);
+      const updatedStock = await fetchStock();
+      setStock(updatedStock);
 
-        if (noHpError?.includes("has already been taken")) {
-          toast.info("Nomor handphone sudah terdaftar.");
-        } else {
-          toast.error("Gagal mengupdate Customers");
-        }
-      } catch (e) {
-        toast.error("Gagal mengupdate Customers");
-      }
+      toast.success("Stock berhasil diupdate");
+    } catch (err) {
+      toast.error("Gagal mengupdate stock");
     }
   };
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: { id_barang: string; limit: number }) => {
     const token = localStorage.getItem("token");
     try {
-      await createCustomer(data);
-      const updated = await fetchCustomers();
-      setCustomers(updated);
-      toast.success("Customers berhasil ditambahkan");
-    } catch (err: any) {
-      try {
-        // Ambil error detail dari response JSON
-        const errorData = await err.response.json();
-        console.log("Error detail dari API:", errorData); // <-- ini lognya
-
-        const noHpError = errorData?.errors?.no_hp?.[0];
-
-        if (noHpError?.includes("has already been taken")) {
-          toast.info("Nomor handphone sudah terdaftar.");
-        } else {
-          toast.error("Gagal menambahkan Customers");
-        }
-      } catch {
-        toast.error("Gagal menambahkan Customers");
-      }
+      await createStock(data, token);
+      const updated = await fetchStock();
+      setStock(updated);
+      toast.success("Stock berhasil ditambahkan");
+    } catch (err) {
+      toast.error("Gagal menambahkan stock");
     }
   };
 
   return (
     <div className="rounded-md border p-4 space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Daftar Customer</h2>
-        <CustomerFormModal
+        <h2 className="text-xl font-semibold">Daftar Stock</h2>
+        <StockFormModal
           onSubmit={handleCreate}
           trigger={<Button>+ Tambah</Button>}
         />
@@ -117,22 +88,38 @@ export default function CustomerTable() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">#</TableHead>
-            <TableHead>Nama Customer</TableHead>
-            <TableHead>Alamat</TableHead>
-            <TableHead>No Handphone</TableHead>
+            <TableHead>Id Barang</TableHead>
+            <TableHead>Nama Barang</TableHead>
+            <TableHead>Jumlah</TableHead>
+            <TableHead>Harga Satuan</TableHead>
+            <TableHead>Limit</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer, index) => (
-            <TableRow key={customer.id}>
+          {stock.map((stock, index) => (
+            <TableRow key={stock.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{customer.customer_name}</TableCell>
-              <TableCell>{customer.alamat}</TableCell>
-              <TableCell>{customer.no_hp}</TableCell>
+              <TableCell>{stock.id_barang}</TableCell>
+              <TableCell>{stock.barang?.nama_barang}</TableCell>
+              <TableCell>{stock.barang?.jumlah}</TableCell>
+              <TableCell>{stock.barang?.harga}</TableCell>
+              <TableCell>{stock.limit}</TableCell>
+              <TableCell>
+                {stock.barang?.jumlah < stock.limit ? (
+                  <span className="bg-red-700 text-white font-semibold text-sm px-2 py-1 rounded-sm">
+                    Out of Stock
+                  </span>
+                ) : (
+                  <span className="bg-green-700 text-white font-semibold text-sm px-2 py-1 rounded-sm">
+                    In Stock
+                  </span>
+                )}
+              </TableCell>
               <TableCell className="text-right space-x-2">
-                <CustomerFormModal
-                  customer={customer}
+                <StockFormModal
+                  stock={stock}
                   onSubmit={handleUpdate}
                   trigger={
                     <Button size="sm" variant="outline">
@@ -149,7 +136,7 @@ export default function CustomerTable() {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Yakin ingin menghapus Customers ini?
+                        Yakin ingin menghapus stock ini?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
                         Tindakan ini tidak bisa dibatalkan. Data akan hilang
@@ -159,7 +146,7 @@ export default function CustomerTable() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleDelete(customer.id)}
+                        onClick={() => handleDelete(stock.id)}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         Ya, Hapus
